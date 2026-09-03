@@ -55,32 +55,39 @@ pub const pathBlock = struct {
             self.color,
         );
 
-        if (!self.path[3]) rl.drawLineEx(.{
-            .x = self.x,
-            .y = self.y,
-        }, .{
-            .x = self.x + self.width,
-            .y = self.y,
-        }, self.thickness, .dark_gray);
+        // Top wall (Index 0: Up / {-1, 0})
         if (!self.path[0]) rl.drawLineEx(.{
             .x = self.x,
             .y = self.y,
         }, .{
-            .x = self.x,
-            .y = self.y + self.height,
+            .x = self.x + self.width,
+            .y = self.y,
         }, self.thickness, .dark_gray);
-        if (!self.path[2]) rl.drawLineEx(.{
+
+        // Right wall (Index 1: Right / {0, 1})
+        if (!self.path[1]) rl.drawLineEx(.{
             .x = self.x + self.width,
             .y = self.y,
         }, .{
             .x = self.x + self.width,
             .y = self.y + self.height,
         }, self.thickness, .dark_gray);
-        if (!self.path[1]) rl.drawLineEx(.{
+
+        // Bottom wall (Index 2: Down / {1, 0})
+        if (!self.path[2]) rl.drawLineEx(.{
             .x = self.x,
             .y = self.y + self.height,
         }, .{
             .x = self.x + self.width,
+            .y = self.y + self.height,
+        }, self.thickness, .dark_gray);
+
+        // Left wall (Index 3: Left / {0, -1})
+        if (!self.path[3]) rl.drawLineEx(.{
+            .x = self.x,
+            .y = self.y,
+        }, .{
+            .x = self.x,
             .y = self.y + self.height,
         }, self.thickness, .dark_gray);
     }
@@ -106,7 +113,7 @@ pub const randDfs = struct {
         var resp: randDfs = .{
             .curr_dist = 0,
             .curr = curr,
-            .dirs = .{ .{ -1, 0 }, .{ 0, 1 }, .{ 1, 0 }, .{ 0, -1 } },
+            .dirs = .{ .{ 0, -1 }, .{ 1, 0 }, .{ 0, 1 }, .{ -1, 0 } },
 
             .stack = stack,
             .top = 0,

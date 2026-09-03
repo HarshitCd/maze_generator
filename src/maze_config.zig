@@ -16,11 +16,11 @@ pub const mazeConfig = struct {
         const sw: i32 = 800;
         const sh: i32 = 800;
 
-        const rows = (sw - 200) / 150;
-        const cols = (sh - 200) / 150;
+        const rows = (sw - 200) / 40;
+        const cols = (sh - 200) / 40;
 
         return .{
-            .fps = 8,
+            .fps = 30,
             .screenWidth = sw,
             .screenHeigth = sh,
 
@@ -28,7 +28,7 @@ pub const mazeConfig = struct {
             .cols = cols,
 
             .startX = 100,
-            .startY = sh - 100,
+            .startY = 100,
             .dx = (sw - 200) / rows,
             .dy = (sh - 200) / cols,
         };

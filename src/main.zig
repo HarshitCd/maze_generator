@@ -9,7 +9,7 @@ pub fn main() void {
     for (&maze, 0..) |*row, i| {
         for (row, 0..) |*pathBlock, j| {
             const x: i32 = mc.startX + @as(i32, @intCast(i)) * mc.dx;
-            const y: i32 = mc.startY - mc.dy - @as(i32, @intCast(j)) * mc.dy;
+            const y: i32 = mc.startY + @as(i32, @intCast(j)) * mc.dy;
 
             pathBlock.* = mz.pathBlock.init(x, y, mc.dx, mc.dy, .ray_white);
         }

@@ -20,6 +20,7 @@ pub fn main() void {
     maze[@as(usize, @intCast(curr[0]))][@as(usize, @intCast(curr[1]))].visited = true;
 
     var dfs: mz.randDfs = .init(curr);
+    var flag: bool = false;
 
     rl.setTargetFPS(mc.fps);
     rl.initWindow(mc.screenWidth, mc.screenHeigth, "Maze Generator");
@@ -30,6 +31,14 @@ pub fn main() void {
         defer rl.endDrawing();
 
         rl.clearBackground(.ray_white);
+
+        if (!flag) {
+            if (rl.isKeyPressed(.space)) {
+                flag = true;
+            }
+
+            continue;
+        }
 
         dfs.next(&maze);
         for (&maze) |*row| {

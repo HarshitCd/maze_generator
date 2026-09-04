@@ -1,3 +1,5 @@
+const print = @import("std").debug.print;
+
 const rl = @import("raylib");
 const mazeConfig = @import("maze_config.zig");
 
@@ -25,6 +27,7 @@ pub const pathBlock = struct {
     width: f32,
     height: f32,
     path: [4]bool,
+    default_color: rl.Color,
     color: rl.Color,
     thickness: f32,
     visited: bool,
@@ -36,10 +39,17 @@ pub const pathBlock = struct {
             .width = castToFloat32(width),
             .height = castToFloat32(height),
             .path = .{ false, false, false, false },
+            .default_color = color,
             .color = color,
             .thickness = 2,
             .visited = false,
         };
+    }
+
+    pub fn reset(self: *@This()) void {
+        self.color = self.default_color;
+        self.path = .{ false, false, false, false };
+        self.visited = false;
     }
 
     pub fn randPath(self: *@This()) void {
@@ -55,32 +65,39 @@ pub const pathBlock = struct {
             self.color,
         );
 
-        if (!self.path[3]) rl.drawLineEx(.{
-            .x = self.x,
-            .y = self.y,
-        }, .{
-            .x = self.x + self.width,
-            .y = self.y,
-        }, self.thickness, .dark_gray);
+        // Top wall (Index 0: Up / {-1, 0})
         if (!self.path[0]) rl.drawLineEx(.{
             .x = self.x,
             .y = self.y,
         }, .{
-            .x = self.x,
-            .y = self.y + self.height,
+            .x = self.x + self.width,
+            .y = self.y,
         }, self.thickness, .dark_gray);
-        if (!self.path[2]) rl.drawLineEx(.{
+
+        // Right wall (Index 1: Right / {0, 1})
+        if (!self.path[1]) rl.drawLineEx(.{
             .x = self.x + self.width,
             .y = self.y,
         }, .{
             .x = self.x + self.width,
             .y = self.y + self.height,
         }, self.thickness, .dark_gray);
-        if (!self.path[1]) rl.drawLineEx(.{
+
+        // Bottom wall (Index 2: Down / {1, 0})
+        if (!self.path[2]) rl.drawLineEx(.{
             .x = self.x,
             .y = self.y + self.height,
         }, .{
             .x = self.x + self.width,
+            .y = self.y + self.height,
+        }, self.thickness, .dark_gray);
+
+        // Left wall (Index 3: Left / {0, -1})
+        if (!self.path[3]) rl.drawLineEx(.{
+            .x = self.x,
+            .y = self.y,
+        }, .{
+            .x = self.x,
             .y = self.y + self.height,
         }, self.thickness, .dark_gray);
     }
@@ -97,6 +114,8 @@ pub const randDfs = struct {
     max_dist: i32,
     max_pos: [2]i32,
 
+    done: bool,
+
     pub fn init(curr: [2]i32) @This() {
         var stack: [mc.rows * mc.cols + 1][2]i32 = undefined;
         for (&stack) |*row| {
@@ -106,13 +125,14 @@ pub const randDfs = struct {
         var resp: randDfs = .{
             .curr_dist = 0,
             .curr = curr,
-            .dirs = .{ .{ -1, 0 }, .{ 0, 1 }, .{ 1, 0 }, .{ 0, -1 } },
+            .dirs = .{ .{ 0, -1 }, .{ 1, 0 }, .{ 0, 1 }, .{ -1, 0 } },
 
             .stack = stack,
             .top = 0,
 
             .max_dist = 0,
             .max_pos = curr,
+            .done = false,
         };
 
         resp.push(curr);
@@ -148,6 +168,8 @@ pub const randDfs = struct {
     pub fn pop(self: *@This()) [2]i32 {
         if (self.top > 0) {
             self.top = self.top - 1;
+        } else {
+            self.done = true;
         }
 
         const ans: [2]i32 = self.stack[self.top];
@@ -221,6 +243,55 @@ pub const randDfs = struct {
             self.curr_dist -= 1;
             var pb2 = &maze[@as(usize, @intCast(self.curr[0]))][@as(usize, @intCast(self.curr[1]))];
             pb2.color = .blue;
+        }
+    }
+};
+
+pub const play = struct {
+    curr: [2]usize,
+    dest: [2]usize,
+    dirs: [4][2]i32,
+    done: bool,
+
+    pub fn init() @This() {
+        return .{
+            .curr = .{ 0, 0 },
+            .dest = .{ 0, 0 },
+            .dirs = .{ .{ 0, -1 }, .{ 1, 0 }, .{ 0, 1 }, .{ -1, 0 } },
+            .done = false,
+        };
+    }
+
+    pub fn set(self: *@This(), curr: [2]i32, dest: [2]i32) void {
+        self.curr = .{ @as(usize, @intCast(curr[0])), @as(usize, @intCast(curr[1])) };
+        self.dest = .{ @as(usize, @intCast(dest[0])), @as(usize, @intCast(dest[1])) };
+        self.done = false;
+    }
+
+    pub fn move(self: *@This(), moveId: usize, maze: *[mc.rows][mc.cols]pathBlock) void {
+        if (self.done) {
+            return;
+        }
+
+        print("curr = {any}\n", .{self.curr});
+        const curr_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
+        if (!curr_pb.*.path[moveId]) {
+            return;
+        }
+        curr_pb.*.color = .light_gray;
+        print("pb = {any}\n", .{curr_pb});
+
+        const dir: [2]i32 = self.dirs[moveId];
+        self.curr[0] = @as(usize, @intCast(@as(i32, @intCast(self.curr[0])) + dir[0]));
+        self.curr[1] = @as(usize, @intCast(@as(i32, @intCast(self.curr[1])) + dir[1]));
+        print("updated curr = {any}\n", .{self.curr});
+
+        const next_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
+        next_pb.*.color = .blue;
+
+        if (self.curr[0] == self.dest[0] and self.curr[1] == self.dest[1]) {
+            self.done = true;
+            next_pb.*.color = .pink;
         }
     }
 };

@@ -1,4 +1,5 @@
 pub const mazeConfig = struct {
+    appName: [:0]const u8,
     fps: i32,
 
     screenWidth: i32,
@@ -16,11 +17,12 @@ pub const mazeConfig = struct {
         const sw: i32 = 800;
         const sh: i32 = 800;
 
-        const rows = (sw - 200) / 150;
-        const cols = (sh - 200) / 150;
+        const rows = (sw - 200) / 40;
+        const cols = (sh - 200) / 40;
 
         return .{
-            .fps = 8,
+            .appName = "Maze Generator",
+            .fps = 45,
             .screenWidth = sw,
             .screenHeigth = sh,
 
@@ -28,7 +30,7 @@ pub const mazeConfig = struct {
             .cols = cols,
 
             .startX = 100,
-            .startY = sh - 100,
+            .startY = 100,
             .dx = (sw - 200) / rows,
             .dy = (sh - 200) / cols,
         };

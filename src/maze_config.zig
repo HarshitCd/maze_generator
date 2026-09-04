@@ -17,12 +17,12 @@ pub const mazeConfig = struct {
         const sw: i32 = 800;
         const sh: i32 = 800;
 
-        const rows = (sw - 200) / 20;
-        const cols = (sh - 200) / 20;
+        const rows = (sw - 200) / 40;
+        const cols = (sh - 200) / 40;
 
         return .{
             .appName = "Maze Generator",
-            .fps = 30,
+            .fps = 45,
             .screenWidth = sw,
             .screenHeigth = sh,
 

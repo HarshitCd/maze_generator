@@ -7,6 +7,7 @@ const mc: mazeConfig.mazeConfig = .init();
 const state = enum {
     Home,
     Generate,
+    Play,
 };
 
 pub fn main() void {
@@ -26,6 +27,7 @@ pub fn main() void {
     maze[@as(usize, @intCast(curr[0]))][@as(usize, @intCast(curr[1]))].visited = true;
 
     var dfs: mz.randDfs = .init(curr);
+    var play = mz.play.init();
 
     rl.setTargetFPS(mc.fps);
     rl.initWindow(mc.screenWidth, mc.screenHeigth, "Maze Generator");
@@ -87,6 +89,9 @@ pub fn main() void {
 
                 if (!dfs.done) {
                     dfs.next(&maze);
+                } else {
+                    s = .Play;
+                    play.set(dfs.curr, dfs.max_pos);
                 }
 
                 for (&maze) |*row| {
@@ -111,6 +116,63 @@ pub fn main() void {
 
                 if (rl.isKeyPressed(.q)) {
                     s = .Home;
+                }
+            },
+            .Play => {
+                const actionText1: [:0]const u8 = "[r] - new generation, [q] - go to home, [arrows] - to move";
+
+                var measure_text: i32 = rl.measureText(actionText1, 18);
+                const middle: i32 = 2;
+                var posX: i32 = @divTrunc(rl.getScreenWidth(), middle) - @divTrunc(measure_text, middle);
+                var posY: i32 = rl.getScreenHeight() - 75 - @divTrunc(18, middle);
+
+                rl.drawText(actionText1, posX, posY, 18, .gray);
+                for (&maze) |*row| {
+                    for (row) |*pathBlock| {
+                        pathBlock.draw();
+                    }
+                }
+
+                if (rl.isKeyPressed(.r)) {
+                    s = .Generate;
+                    for (&maze) |*row| {
+                        for (row) |*pathBlock| {
+                            pathBlock.reset();
+                        }
+                    }
+
+                    curr = .{ rl.getRandomValue(0, mc.rows - 1), rl.getRandomValue(0, mc.cols - 1) };
+                    maze[@as(usize, @intCast(curr[0]))][@as(usize, @intCast(curr[1]))].color = .blue;
+                    maze[@as(usize, @intCast(curr[0]))][@as(usize, @intCast(curr[1]))].visited = true;
+
+                    dfs = mz.randDfs.init(curr);
+                }
+
+                if (rl.isKeyPressed(.q)) {
+                    s = .Home;
+                }
+
+                if (!play.done) {
+                    if (rl.isKeyPressed(.up)) {
+                        play.move(0, &maze);
+                    }
+                    if (rl.isKeyPressed(.right)) {
+                        play.move(1, &maze);
+                    }
+                    if (rl.isKeyPressed(.down)) {
+                        play.move(2, &maze);
+                    }
+                    if (rl.isKeyPressed(.left)) {
+                        play.move(3, &maze);
+                    }
+                } else {
+                    const doneText: [:0]const u8 = "Maze Solved!";
+
+                    measure_text = rl.measureText(doneText, 50);
+                    posX = @divTrunc(rl.getScreenWidth(), middle) - @divTrunc(measure_text, middle);
+                    posY = 30;
+
+                    rl.drawText(doneText, posX, posY, 50, .green);
                 }
             },
         }

@@ -1,3 +1,5 @@
+const print = @import("std").debug.print;
+
 const rl = @import("raylib");
 const mazeConfig = @import("maze_config.zig");
 
@@ -241,6 +243,55 @@ pub const randDfs = struct {
             self.curr_dist -= 1;
             var pb2 = &maze[@as(usize, @intCast(self.curr[0]))][@as(usize, @intCast(self.curr[1]))];
             pb2.color = .blue;
+        }
+    }
+};
+
+pub const play = struct {
+    curr: [2]usize,
+    dest: [2]usize,
+    dirs: [4][2]i32,
+    done: bool,
+
+    pub fn init() @This() {
+        return .{
+            .curr = .{ 0, 0 },
+            .dest = .{ 0, 0 },
+            .dirs = .{ .{ 0, -1 }, .{ 1, 0 }, .{ 0, 1 }, .{ -1, 0 } },
+            .done = false,
+        };
+    }
+
+    pub fn set(self: *@This(), curr: [2]i32, dest: [2]i32) void {
+        self.curr = .{ @as(usize, @intCast(curr[0])), @as(usize, @intCast(curr[1])) };
+        self.dest = .{ @as(usize, @intCast(dest[0])), @as(usize, @intCast(dest[1])) };
+        self.done = false;
+    }
+
+    pub fn move(self: *@This(), moveId: usize, maze: *[mc.rows][mc.cols]pathBlock) void {
+        if (self.done) {
+            return;
+        }
+
+        print("curr = {any}\n", .{self.curr});
+        const curr_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
+        if (!curr_pb.*.path[moveId]) {
+            return;
+        }
+        curr_pb.*.color = .light_gray;
+        print("pb = {any}\n", .{curr_pb});
+
+        const dir: [2]i32 = self.dirs[moveId];
+        self.curr[0] = @as(usize, @intCast(@as(i32, @intCast(self.curr[0])) + dir[0]));
+        self.curr[1] = @as(usize, @intCast(@as(i32, @intCast(self.curr[1])) + dir[1]));
+        print("updated curr = {any}\n", .{self.curr});
+
+        const next_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
+        next_pb.*.color = .blue;
+
+        if (self.curr[0] == self.dest[0] and self.curr[1] == self.dest[1]) {
+            self.done = true;
+            next_pb.*.color = .pink;
         }
     }
 };

@@ -25,6 +25,7 @@ pub const pathBlock = struct {
     width: f32,
     height: f32,
     path: [4]bool,
+    default_color: rl.Color,
     color: rl.Color,
     thickness: f32,
     visited: bool,
@@ -36,10 +37,17 @@ pub const pathBlock = struct {
             .width = castToFloat32(width),
             .height = castToFloat32(height),
             .path = .{ false, false, false, false },
+            .default_color = color,
             .color = color,
             .thickness = 2,
             .visited = false,
         };
+    }
+
+    pub fn reset(self: *@This()) void {
+        self.color = self.default_color;
+        self.path = .{ false, false, false, false };
+        self.visited = false;
     }
 
     pub fn randPath(self: *@This()) void {
@@ -104,6 +112,8 @@ pub const randDfs = struct {
     max_dist: i32,
     max_pos: [2]i32,
 
+    done: bool,
+
     pub fn init(curr: [2]i32) @This() {
         var stack: [mc.rows * mc.cols + 1][2]i32 = undefined;
         for (&stack) |*row| {
@@ -120,6 +130,7 @@ pub const randDfs = struct {
 
             .max_dist = 0,
             .max_pos = curr,
+            .done = false,
         };
 
         resp.push(curr);
@@ -155,6 +166,8 @@ pub const randDfs = struct {
     pub fn pop(self: *@This()) [2]i32 {
         if (self.top > 0) {
             self.top = self.top - 1;
+        } else {
+            self.done = true;
         }
 
         const ans: [2]i32 = self.stack[self.top];

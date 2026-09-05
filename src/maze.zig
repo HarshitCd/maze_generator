@@ -1,5 +1,3 @@
-const print = @import("std").debug.print;
-
 const rl = @import("raylib");
 const mazeConfig = @import("maze_config.zig");
 
@@ -273,18 +271,15 @@ pub const play = struct {
             return;
         }
 
-        print("curr = {any}\n", .{self.curr});
         const curr_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
         if (!curr_pb.*.path[moveId]) {
             return;
         }
         curr_pb.*.color = .light_gray;
-        print("pb = {any}\n", .{curr_pb});
 
         const dir: [2]i32 = self.dirs[moveId];
         self.curr[0] = @as(usize, @intCast(@as(i32, @intCast(self.curr[0])) + dir[0]));
         self.curr[1] = @as(usize, @intCast(@as(i32, @intCast(self.curr[1])) + dir[1]));
-        print("updated curr = {any}\n", .{self.curr});
 
         const next_pb: *pathBlock = &maze[self.curr[0]][self.curr[1]];
         next_pb.*.color = .blue;
